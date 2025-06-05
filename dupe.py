@@ -245,4 +245,20 @@ overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
 overlay.attributes("-transparentcolor", "white")
 overlay.config(bg="white")
 
-canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_d
+# Завершение canvas и рисование круга
+canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="white", highlightthickness=0)
+canvas.pack()
+canvas.create_oval(2, 2, circle_diameter - 2, circle_diameter - 2, outline="red", width=3)
+
+# Изначально скрываем оверлей
+overlay.withdraw()
+
+# Функция обновления видимости оверлея
+def update_overlay_visibility():
+    if feature_states.get("Aimbot", False) or feature_states.get("Magic Bullet", False):
+        overlay.deiconify()
+    else:
+        overlay.withdraw()
+
+# Запуск главного цикла
+app.mainloop()
