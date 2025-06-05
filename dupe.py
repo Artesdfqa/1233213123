@@ -78,6 +78,10 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
+# Добавленная функция — чтобы исправить ошибку NameError
+def show_tab(name):
+    update_buttons_text()
+
 frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
 frame_buttons.pack(fill="both", expand=True, pady=10, padx=10)
 
