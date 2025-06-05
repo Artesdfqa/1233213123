@@ -1,3 +1,142 @@
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import ttk
+import json
+import os
+
+SETTINGS_FILE = "settings.json"
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("dark-blue")
+
+app = ctk.CTk()
+app.title("NearKiller")
+app.wm_attributes("-topmost", True)
+app.wm_attributes("-alpha", 0.95)
+
+root_tk = tk.Tk()
+screen_width = root_tk.winfo_screenwidth()
+screen_height = root_tk.winfo_screenheight()
+root_tk.destroy()
+
+win_width = int(screen_width / 4 * 0.9)
+win_height = int(screen_height / 4 * 0.9)
+pos_x = screen_width - win_width - 20
+pos_y = screen_height - win_height - 50
+app.geometry(f"{win_width}x{win_height}+{pos_x}+{pos_y}")
+
+button_color = "#8a2be2"
+active_color = "#a259ff"
+enabled_color = "#d3a9ff"
+
+selected_tab = ctk.StringVar(value="Combat")
+feature_states = {}
+feature_settings = {}
+
+# Загрузка настроек
+def load_settings():
+    global feature_settings
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                feature_settings = json.load(f)
+        except Exception:
+            feature_settings = {}
+    else:
+        feature_settings = {}
+
+# Сохранение настроек
+def save_settings():
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(feature_settings, f, indent=2)
+
+load_settings()
+
+frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
+frame_tabs.pack(pady=10)
+
+def switch_tab(name):
+    selected_tab.set(name)
+    update_tabs()
+    update_buttons_text()
+
+tabs = {}
+tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
+
+for tab in tab_names:
+    btn = ctk.CTkButton(frame_tabs, text=tab, width=win_width // 6, height=25,
+                        fg_color=button_color,
+                        hover_color=active_color,
+                        command=lambda t=tab: switch_tab(t))
+    btn.pack(side="left", padx=3)
+    tabs[tab] = btn
+
+def update_tabs():
+    for name, btn in tabs.items():
+        if selected_tab.get() == name:
+            btn.configure(fg_color=active_color)
+        else:
+            btn.configure(fg_color=button_color)
+
+frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
+frame_buttons.pack(fill="both", expand=True, pady=10, padx=10)
+
+def clear_buttons():
+    for widget in frame_buttons.winfo_children():
+        widget.destroy()
+
+def get_feature_display_text(name):
+    state = feature_states.get(name, False)
+    on_off = "[ON]" if state else "[OFF]"
+
+    sett = feature_settings.get(name, {})
+
+    if name in ["Aimbot", "Magic Bullet"]:
+        fov = sett.get("fov", 90)
+        dist = sett.get("distance", 100)
+        return f"{name} {on_off} FOV: {fov} Dst: {dist}"
+    elif name == "ESP":
+        opacity = sett.get("opacity", 70)
+        return f"{name} {on_off} Opacity: {opacity}%"
+    elif name == "ESP Storage":
+        opacity = sett.get("opacity", 50)
+        return f"{name} {on_off} Opacity: {opacity}%"
+    elif name == "Player List":
+        count = sett.get("count", 10)
+        return f"{name} {on_off} Count: {count}"
+    elif name == "Chest Finder":
+        radius = sett.get("radius", 100)
+        return f"{name} {on_off} Radius: {radius}"
+    elif name == "Mob Radar":
+        radius = sett.get("radius", 100)
+        return f"{name} {on_off} Radius: {radius}"
+    elif name == "Speed Hack":
+        speed = sett.get("speed", 2)
+        return f"{name} {on_off} Speed: {speed}x"
+    elif name == "NoClip":
+        enabled = sett.get("enabled", False)
+        return f"{name} {on_off} Enabled: {'Yes' if enabled else 'No'}"
+    elif name == "Fly":
+        speed = sett.get("speed", 1)
+        return f"{name} {on_off} Speed: {speed}x"
+    elif name == "x2 Dupe Resource":
+        multiplier = sett.get("multiplier", 2)
+        return f"{name} {on_off} x{multiplier}"
+    else:
+        return f"{name} {on_off}"
+
+def toggle_feature(name, button):
+    current = feature_states.get(name, False)
+    feature_states[name] = not current
+    button.configure(fg_color=enabled_color if not current else button_color,
+                     text=get_feature_display_text(name))
+    save_settings()
+
+def on_right_click(event, feature_name):
+    menu = tk.Menu(app, tearoff=0)
+    menu.add_command(label=f"Настроить {feature_name}", command=lambda: open_settings(feature_name))
+    menu.tk_popup(event.x_root, event.y_root)
+
 def open_settings(feature_name):
     popup = ctk.CTkToplevel(app)
     popup.title(f"Настройки {feature_name}")
@@ -71,3 +210,31 @@ def open_settings(feature_name):
     btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
     btn_save.pack(pady=15)
 
+def update_buttons_text():
+    clear_buttons()
+    current_tab = selected_tab.get()
+
+    features_by_tab = {
+        "Combat": ["Aimbot", "Magic Bullet", "Speed Hack", "NoClip", "Fly"],
+        "Visual": ["ESP", "ESP Storage", "Chest Finder", "Mob Radar"],
+        "List": ["Player List"],
+        "Movement": [],
+        "Others": ["x2 Dupe Resource"],
+    }
+
+    for feature in features_by_tab.get(current_tab, []):
+        state = feature_states.get(feature, False)
+        btn = ctk.CTkButton(frame_buttons,
+                            text=get_feature_display_text(feature),
+                            fg_color=enabled_color if state else button_color,
+                            hover_color=active_color,
+                            height=30,
+                            anchor="w")
+        btn.configure(command=lambda f=feature, b=btn: toggle_feature(f, b))
+        btn.pack(fill="x", pady=3)
+        btn.bind("<Button-3>", lambda e, f=feature: on_right_click(e, f))
+
+update_tabs()
+update_buttons_text()
+
+app.mainloop()
