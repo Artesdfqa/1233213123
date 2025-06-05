@@ -14,10 +14,11 @@ app.title("NearKiller")
 app.wm_attributes("-topmost", True)
 app.wm_attributes("-alpha", 0.95)
 
+# Получаем размеры экрана через tkinter
 root_tk = tk.Tk()
 screen_width = root_tk.winfo_screenwidth()
 screen_height = root_tk.winfo_screenheight()
-root_tk.destroy()
+root_tk.withdraw()  # скрываем окно
 
 win_width = int(screen_width / 4 * 0.9)
 win_height = int(screen_height / 4 * 0.9)
@@ -33,6 +34,7 @@ selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}
 feature_settings = {}
 
+# Загрузка настроек
 def load_settings():
     global feature_settings
     if os.path.exists(SETTINGS_FILE):
@@ -44,6 +46,7 @@ def load_settings():
     else:
         feature_settings = {}
 
+# Сохранение настроек
 def save_settings():
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(feature_settings, f, indent=2)
@@ -86,7 +89,9 @@ def clear_buttons():
 def get_feature_display_text(name):
     state = feature_states.get(name, False)
     on_off = "[ON]" if state else "[OFF]"
+
     sett = feature_settings.get(name, {})
+
     if name in ["Aimbot", "Magic Bullet"]:
         fov = sett.get("fov", 90)
         dist = sett.get("distance", 100)
@@ -127,7 +132,7 @@ def toggle_feature(name, button):
     button.configure(fg_color=enabled_color if not current else button_color,
                      text=get_feature_display_text(name))
     save_settings()
-    update_overlay_visibility()
+    update_overlay_visibility()  # Обновляем видимость круга
 
 def on_right_click(event, feature_name):
     menu = tk.Menu(app, tearoff=0)
@@ -223,35 +228,38 @@ def update_buttons_text():
         btn = ctk.CTkButton(frame_buttons, text=get_feature_display_text(feature_name), fg_color=button_color,
                             hover_color=active_color, command=lambda n=feature_name, b=None: toggle_feature(n, b))
         btn.pack(fill="x", pady=5)
+        # Передаём кнопку в toggle_feature через замыкание
         btn.configure(command=lambda n=feature_name, b=btn: toggle_feature(n, b))
         btn.bind("<Button-3>", lambda e, n=feature_name: on_right_click(e, n))
+
+def show_tab(name):
+    update_buttons_text()
 
 switch_tab(selected_tab.get())
 
 # --- Оверлей с красным кругом ---
 
 circle_diameter = 100
-
-overlay = tk.Toplevel()
-overlay.overrideredirect(True)  # Без рамок и панели
-overlay.attributes("-topmost", True)  # Поверх всех окон
-overlay.attributes("-transparentcolor", "white")  # Сделать белый прозрачным
-
-# Позиционируем оверлей ровно по центру экрана
 pos_x = (screen_width - circle_diameter) // 2
 pos_y = (screen_height - circle_diameter) // 2
-overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
 
-overlay.config(bg="white")  # фон совпадает с transparentcolor
+overlay = tk.Toplevel()
+overlay.overrideredirect(True)  # Без рамок
+overlay.attributes("-topmost", True)  # Поверх всех окон
+overlay.attributes("-transparentcolor", "white")  # Делает белый прозрачным
+overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
+overlay.config(bg="white")
 
 canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="white", highlightthickness=0)
 canvas.pack()
 
-# Нарисуем красный круг с толщиной линии 3, без заливки
+# Рисуем только обводку круга красным цветом, без заливки
 canvas.create_oval(3, 3, circle_diameter - 3, circle_diameter - 3, outline="red", width=3)
 
+overlay.withdraw()  # Скрываем оверлей при старте
+
 def update_overlay_visibility():
-    # Показывать оверлей только если активирован Aimbot или Magic Bullet
+    # Показываем круг, если Aimbot или Magic Bullet включены
     if feature_states.get("Aimbot", False) or feature_states.get("Magic Bullet", False):
         overlay.deiconify()
     else:
