@@ -135,12 +135,12 @@ def toggle_feature(name, button):
 
 def on_right_click(event, feature_name):
     menu = tk.Menu(app, tearoff=0)
-    menu.add_command(label=f"Настроить {feature_name}", command=lambda: open_settings(feature_name))
+    menu.add_command(label=f"\u041d\u0430\u0441\u0442\u0440\u043e\u0438\u0442\u044c {feature_name}", command=lambda: open_settings(feature_name))
     menu.tk_popup(event.x_root, event.y_root)
 
 def open_settings(feature_name):
     popup = ctk.CTkToplevel(app)
-    popup.title(f"Настройки {feature_name}")
+    popup.title(f"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 {feature_name}")
     popup.geometry("320x250")
     popup.wm_attributes("-topmost", True)
 
@@ -178,8 +178,8 @@ def open_settings(feature_name):
     vars_dict = {}
 
     if feature_name in ["Aimbot", "Magic Bullet"]:
-        vars_dict["fov"] = create_label_spinbox(popup, "FOV (угол):", "fov", 10, 180, 1)
-        vars_dict["distance"] = create_label_spinbox(popup, "Distance (дальность):", "distance", 10, 500, 5)
+        vars_dict["fov"] = create_label_spinbox(popup, "FOV (\u0443\u0433\u043e\u043b):", "fov", 10, 180, 1)
+        vars_dict["distance"] = create_label_spinbox(popup, "Distance (\u0434\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u044c):", "distance", 10, 500, 5)
     elif feature_name in ["ESP", "ESP Storage"]:
         vars_dict["opacity"] = create_label_spinbox(popup, "Opacity (%):", "opacity", 0, 100, 5)
     elif feature_name == "Player List":
@@ -208,7 +208,7 @@ def open_settings(feature_name):
         update_buttons_text()
         popup.destroy()
 
-    btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
+    btn_save = ctk.CTkButton(popup, text="\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", command=save_and_close)
     btn_save.pack(pady=10)
 
 def update_buttons_text():
@@ -227,18 +227,17 @@ def update_buttons_text():
         btn = ctk.CTkButton(frame_buttons, text=get_feature_display_text(feature_name), fg_color=button_color,
                             hover_color=active_color, command=lambda n=feature_name, b=None: toggle_feature(n, b))
         btn.pack(fill="x", pady=5)
-        # Нужно чтобы toggle_feature получил кнопку, передадим через замыкание:
         btn.configure(command=lambda n=feature_name, b=btn: toggle_feature(n, b))
         btn.bind("<Button-3>", lambda e, n=feature_name: on_right_click(e, n))
 
 switch_tab(selected_tab.get())
 
 # --- Оверлей с красным кругом ---
-
 circle_diameter = 100
 overlay = tk.Toplevel()
-overlay.overrideredirect(True)  # Без рамок
+overlay.overrideredirect(True)
 overlay.attributes("-topmost", True)
+
 pos_x = (screen_width - circle_diameter) // 2
 pos_y = (screen_height - circle_diameter) // 2
 overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
@@ -249,15 +248,12 @@ canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="w
 canvas.pack()
 canvas.create_oval(2, 2, circle_diameter - 2, circle_diameter - 2, outline="red", width=3)
 
-# Изначально скрываем оверлей
 overlay.withdraw()
 
-# Функция обновления видимости оверлея
 def update_overlay_visibility():
     if feature_states.get("Aimbot", False) or feature_states.get("Magic Bullet", False):
         overlay.deiconify()
     else:
         overlay.withdraw()
 
-# Запуск главного цикла
 app.mainloop()
