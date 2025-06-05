@@ -5,7 +5,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 app = ctk.CTk()
-app.geometry("500x540")
+app.geometry("320x540")
 app.title("NearKiller")
 app.wm_attributes("-topmost", True)
 app.wm_attributes("-alpha", 0.95)
@@ -44,24 +44,11 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# Основной фрейм с двумя колонками: слева контент, справа панель с кнопками
-frame_content = ctk.CTkFrame(app)
-frame_content.pack(fill="both", expand=True, padx=20, pady=10)
+# Правая панель с кнопками функций — занимает всё окно под вкладками
+frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
+frame_buttons.pack(fill="both", expand=True, pady=10, padx=10)
 
-# Левая часть — контент
-frame_main = ctk.CTkFrame(frame_content, corner_radius=15)
-frame_main.pack(side="left", fill="both", expand=True, padx=(0, 10))
-
-# Правая часть — панель с кнопками
-frame_right = ctk.CTkFrame(frame_content, fg_color="transparent", width=140)
-frame_right.pack(side="right", fill="y")
-
-frame_buttons = ctk.CTkFrame(frame_right, fg_color="transparent")
-frame_buttons.pack(fill="both", expand=True, pady=5, padx=5)
-
-def clear_frame():
-    for widget in frame_main.winfo_children():
-        widget.destroy()
+def clear_buttons():
     for widget in frame_buttons.winfo_children():
         widget.destroy()
 
@@ -86,9 +73,8 @@ def open_settings(feature_name):
     popup.wm_attributes("-topmost", True)
 
 def show_tab(tab_name):
-    clear_frame()
+    clear_buttons()
     
-    features = []
     if tab_name == "Combat":
         features = ["Aimbot", "Magic Bullet"]
     elif tab_name == "Visual":
@@ -98,31 +84,21 @@ def show_tab(tab_name):
     elif tab_name == "Movement":
         features = ["Speed Hack", "NoClip", "Fly"]
     elif tab_name == "Others":
-        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", width=130, height=25,
-                            fg_color=button_color, hover_color=active_color,
-                            command=fake_dupe)
-        btn.pack(pady=3, fill="x")
-        btn.bind("<Button-3>", lambda e: on_right_click(e, "x2 Dupe Resource"))
-        return
+        features = ["x2 Dupe Resource"]
+    else:
+        features = []
 
     for name in features:
         btn = ctk.CTkButton(frame_buttons, text=f"{name} [OFF]",
                             fg_color=button_color,
                             hover_color=active_color,
                             height=25,
-                            width=130,
+                            width=280,
                             anchor="w")
-        btn.pack(pady=3, fill="x")
+        btn.pack(pady=5, fill="x")
         btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
         btn.bind("<Button-3>", lambda e, n=name: on_right_click(e, n))
         feature_states[name] = False
-
-def fake_dupe():
-    popup = ctk.CTkToplevel(app)
-    popup.title("x2 Dupe Resource")
-    popup.geometry("300x100")
-    ctk.CTkLabel(popup, text="Ресурсы теперь визуально удвоены!\n(только на экране)").pack(pady=20)
-    popup.wm_attributes("-topmost", True)
 
 switch_tab("Combat")
 app.mainloop()
