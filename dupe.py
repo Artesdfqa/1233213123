@@ -11,11 +11,12 @@ app.wm_attributes("-alpha", 0.95)
 
 button_color = "#8a2be2"
 active_color = "#a259ff"
-enabled_color = "#d3a9ff"  # светлый фиолетовый, заметнее
+enabled_color = "#d3a9ff"  # светлый фиолетовый
 
 selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}  # для отслеживания состояния
 
+# Верхняя панель вкладок
 frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
 frame_tabs.pack(pady=15)
 
@@ -42,11 +43,18 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
+# Основной контент (текст/информация)
 frame_main = ctk.CTkFrame(app, corner_radius=15)
-frame_main.pack(fill="both", expand=True, padx=20, pady=10)
+frame_main.pack(fill="both", expand=True, padx=20, pady=(10, 60))  # Отступ снизу больше чтобы не было перекрытия
+
+# Нижняя панель с кнопками функций (в ряд)
+frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
+frame_buttons.pack(side="bottom", fill="x", padx=20, pady=10)
 
 def clear_frame():
     for widget in frame_main.winfo_children():
+        widget.destroy()
+    for widget in frame_buttons.winfo_children():
         widget.destroy()
 
 def toggle_feature(name, button):
@@ -59,40 +67,34 @@ def toggle_feature(name, button):
 
 def show_tab(tab_name):
     clear_frame()
+    ctk.CTkLabel(frame_main, text=f"=== {tab_name} ===", font=("Arial", 20)).pack(pady=10)
     
+    features = []
     if tab_name == "Combat":
-        ctk.CTkLabel(frame_main, text="⚔ Combat", font=("Arial", 18)).pack(pady=10)
-        make_feature_button("Aimbot")
-        make_feature_button("Magic Bullet")
-    
+        features = ["Aimbot", "Magic Bullet"]
     elif tab_name == "Visual":
-        ctk.CTkLabel(frame_main, text="👁 Visual", font=("Arial", 18)).pack(pady=10)
-        make_feature_button("ESP")
-        make_feature_button("ESP Storage")
-    
+        features = ["ESP", "ESP Storage"]
     elif tab_name == "List":
-        ctk.CTkLabel(frame_main, text="📋 List", font=("Arial", 18)).pack(pady=10)
-        make_feature_button("Player List")
-        make_feature_button("Chest Finder")
-        make_feature_button("Mob Radar")
-    
+        features = ["Player List", "Chest Finder", "Mob Radar"]
     elif tab_name == "Movement":
-        ctk.CTkLabel(frame_main, text="🏃 Movement", font=("Arial", 18)).pack(pady=10)
-        make_feature_button("Speed Hack")
-        make_feature_button("NoClip")
-        make_feature_button("Fly")
-    
+        features = ["Speed Hack", "NoClip", "Fly"]
     elif tab_name == "Others":
-        ctk.CTkLabel(frame_main, text="⚙ Others", font=("Arial", 18)).pack(pady=10)
-        ctk.CTkButton(frame_main, text="x2 Dupe Resource", command=fake_dupe).pack(pady=5)
+        # В Others кнопка не входит в общий список функций
+        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", command=fake_dupe)
+        btn.pack(side="left", padx=5)
+        return
 
-def make_feature_button(name):
-    btn = ctk.CTkButton(frame_main, text=f"{name} [OFF]",
-                        fg_color=button_color,
-                        hover_color=active_color,
-                        command=lambda: toggle_feature(name, btn))
-    btn.pack(pady=5)
-    feature_states[name] = False
+    # Создаём кнопки функций горизонтально
+    for name in features:
+        btn = ctk.CTkButton(frame_buttons, text=f"{name} [OFF]",
+                            fg_color=button_color,
+                            hover_color=active_color,
+                            width=110,
+                            command=lambda n=name, b=None: None)  # заглушка, ниже заменим
+        btn.pack(side="left", padx=5)
+        # Переписываем команду с правильной ссылкой на кнопку
+        btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
+        feature_states[name] = False
 
 def fake_dupe():
     popup = ctk.CTkToplevel(app)
