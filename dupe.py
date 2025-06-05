@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
@@ -55,7 +56,6 @@ frame_main.pack(side="left", fill="both", expand=True, padx=(0, 10))
 frame_buttons_outer = ctk.CTkFrame(frame_content, fg_color="transparent", width=140)
 frame_buttons_outer.pack(side="right", fill="y")
 
-# Чтобы кнопки были внизу справа, добавим вложенный frame_buttons с pack(side='bottom')
 frame_buttons = ctk.CTkFrame(frame_buttons_outer, fg_color="transparent")
 frame_buttons.pack(side="bottom", fill="x", pady=10)
 
@@ -73,6 +73,18 @@ def toggle_feature(name, button):
     else:
         button.configure(fg_color=button_color, text=f"{name} [OFF]")
 
+def on_right_click(event, feature_name):
+    menu = tk.Menu(app, tearoff=0)
+    menu.add_command(label=f"Настроить {feature_name}", command=lambda: open_settings(feature_name))
+    menu.tk_popup(event.x_root, event.y_root)
+
+def open_settings(feature_name):
+    popup = ctk.CTkToplevel(app)
+    popup.title(f"Настройки {feature_name}")
+    popup.geometry("300x150")
+    ctk.CTkLabel(popup, text=f"Здесь можно настроить {feature_name}").pack(pady=20)
+    popup.wm_attributes("-topmost", True)
+
 def show_tab(tab_name):
     clear_frame()
     ctk.CTkLabel(frame_main, text=f"=== {tab_name} ===", font=("Arial", 20)).pack(pady=10)
@@ -87,18 +99,23 @@ def show_tab(tab_name):
     elif tab_name == "Movement":
         features = ["Speed Hack", "NoClip", "Fly"]
     elif tab_name == "Others":
-        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", command=fake_dupe, width=120)
-        btn.pack(pady=5)
+        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", width=120, 
+                            fg_color=button_color, hover_color=active_color,
+                            command=fake_dupe)
+        btn.pack(pady=5, fill="x")
+        btn.bind("<Button-3>", lambda e: on_right_click(e, "x2 Dupe Resource"))
         return
 
     for name in features:
         btn = ctk.CTkButton(frame_buttons, text=f"{name} [OFF]",
                             fg_color=button_color,
                             hover_color=active_color,
-                            width=120,
-                            command=lambda n=name, b=None: None)  # заглушка
-        btn.pack(pady=5)
+                            height=36,
+                            width=140,
+                            anchor="w")
+        btn.pack(pady=5, fill="x")
         btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
+        btn.bind("<Button-3>", lambda e, n=name: on_right_click(e, n))
         feature_states[name] = False
 
 def fake_dupe():
