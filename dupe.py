@@ -33,6 +33,35 @@ selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}
 feature_settings = {}
 
+# --- Оверлей окно для красного круга ---
+
+overlay = tk.Toplevel()
+overlay.withdraw()  # Скрыть по умолчанию
+overlay.overrideredirect(True)  # Без рамок
+overlay.attributes("-topmost", True)
+overlay.attributes("-transparentcolor", "white")  # Сделать белый прозрачным
+
+# Размер круга
+circle_diameter = 100
+circle_radius = circle_diameter // 2
+
+# Центр экрана для окна
+overlay.geometry(f"{circle_diameter}x{circle_diameter}+{(screen_width - circle_diameter)//2}+{(screen_height - circle_diameter)//2}")
+overlay.config(bg="white")  # фон белый, он прозрачный по атрибуту
+
+canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="white", highlightthickness=0)
+canvas.pack()
+
+# Нарисовать красный круг
+canvas.create_oval(2, 2, circle_diameter-2, circle_diameter-2, fill="red", outline="red")
+
+def update_overlay_visibility():
+    # Показываем оверлей, если включен аимбот или магик буллет
+    if feature_states.get("Aimbot", False) or feature_states.get("Magic Bullet", False):
+        overlay.deiconify()
+    else:
+        overlay.withdraw()
+
 # Загрузка настроек
 def load_settings():
     global feature_settings
@@ -131,6 +160,7 @@ def toggle_feature(name, button):
     button.configure(fg_color=enabled_color if not current else button_color,
                      text=get_feature_display_text(name))
     save_settings()
+    update_overlay_visibility()
 
 def on_right_click(event, feature_name):
     menu = tk.Menu(app, tearoff=0)
