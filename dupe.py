@@ -17,7 +17,7 @@ enabled_color = "#d3a9ff"  # светлый фиолетовый
 selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}
 
-# Верхняя панель вкладок
+# Верхняя панель вкладок — кнопки маленькие по высоте, длинные по ширине
 frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
 frame_tabs.pack(pady=15)
 
@@ -30,7 +30,7 @@ tabs = {}
 tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
 
 for tab in tab_names:
-    btn = ctk.CTkButton(frame_tabs, text=tab, width=75, height=32,
+    btn = ctk.CTkButton(frame_tabs, text=tab, width=90, height=25,
                         fg_color=button_color,
                         hover_color=active_color,
                         command=lambda t=tab: switch_tab(t))
@@ -44,7 +44,7 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# Основной фрейм с двумя колонками: слева контент, справа панель с названием вкладки и кнопками
+# Основной фрейм с двумя колонками: слева контент, справа панель с кнопками
 frame_content = ctk.CTkFrame(app)
 frame_content.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -52,15 +52,10 @@ frame_content.pack(fill="both", expand=True, padx=20, pady=10)
 frame_main = ctk.CTkFrame(frame_content, corner_radius=15)
 frame_main.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
-# Правая часть — панель с названием вкладки сверху и кнопками снизу
+# Правая часть — панель с кнопками
 frame_right = ctk.CTkFrame(frame_content, fg_color="transparent", width=140)
 frame_right.pack(side="right", fill="y")
 
-# Название вкладки — маленьким шрифтом сверху справа
-label_tab_name = ctk.CTkLabel(frame_right, text="", font=ctk.CTkFont(size=12, weight="bold"))
-label_tab_name.pack(pady=(10, 5))
-
-# Контейнер для кнопок — сразу под названием
 frame_buttons = ctk.CTkFrame(frame_right, fg_color="transparent")
 frame_buttons.pack(fill="both", expand=True, pady=5, padx=5)
 
@@ -92,9 +87,6 @@ def open_settings(feature_name):
 
 def show_tab(tab_name):
     clear_frame()
-    label_tab_name.configure(text=tab_name)
-    
-    ctk.CTkLabel(frame_main, text=f"=== {tab_name} ===", font=("Arial", 20)).pack(pady=10)
     
     features = []
     if tab_name == "Combat":
