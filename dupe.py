@@ -4,66 +4,99 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 app = ctk.CTk()
-app.geometry("400x500")
+app.geometry("420x540")
 app.title("NearKiller")
 app.wm_attributes("-topmost", True)
 app.wm_attributes("-alpha", 0.95)
 
-# Стили
-button_color = "#8a2be2"  # фиолетовый
+button_color = "#8a2be2"
 active_color = "#a259ff"
+enabled_color = "#b07fff"
 
-selected_tab = ctk.StringVar(value="None")
+selected_tab = ctk.StringVar(value="Combat")
+feature_states = {}  # для отслеживания состояния
 
-# Верхнее меню
-frame_top = ctk.CTkFrame(app)
-frame_top.pack(pady=10)
+# ==== Верхние вкладки ====
+frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
+frame_tabs.pack(pady=15)
 
-def select_tab(name):
+def switch_tab(name):
     selected_tab.set(name)
     update_tabs()
-
-def update_tabs():
-    for name, button in tabs.items():
-        if selected_tab.get() == name:
-            button.configure(fg_color=active_color)
-        else:
-            button.configure(fg_color=button_color)
+    show_tab(name)
 
 tabs = {}
 tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
+
 for tab in tab_names:
-    tabs[tab] = ctk.CTkButton(frame_top, text=tab, command=lambda t=tab: select_tab(t), fg_color=button_color, width=70)
-    tabs[tab].pack(side="left", padx=2)
+    btn = ctk.CTkButton(frame_tabs, text=tab, width=75, height=32,
+                        fg_color=button_color,
+                        hover_color=active_color,
+                        command=lambda t=tab: switch_tab(t))
+    btn.pack(side="left", padx=5)
+    tabs[tab] = btn
 
-# Контент вкладок
-frame_content = ctk.CTkFrame(app)
-frame_content.pack(fill="both", expand=True, pady=10)
+def update_tabs():
+    for name, btn in tabs.items():
+        if selected_tab.get() == name:
+            btn.configure(fg_color=active_color)
+        else:
+            btn.configure(fg_color=button_color)
 
-# Все вкладки в словаре
-tab_frames = {}
+# ==== Область контента ====
+frame_main = ctk.CTkFrame(app, corner_radius=15)
+frame_main.pack(fill="both", expand=True, padx=20, pady=10)
 
 def clear_frame():
-    for widget in frame_content.winfo_children():
+    for widget in frame_main.winfo_children():
         widget.destroy()
 
+# ==== Функция переключения ====
+def toggle_feature(name, button):
+    current = feature_states.get(name, False)
+    feature_states[name] = not current
+    button.configure(fg_color=enabled_color if not current else button_color)
+
+# ==== Контент вкладок ====
 def show_tab(tab_name):
     clear_frame()
+    
     if tab_name == "Combat":
-        ctk.CTkLabel(frame_content, text="Combat Options").pack()
-        ctk.CTkButton(frame_content, text="Aimbot").pack(pady=5)
-        ctk.CTkButton(frame_content, text="Magic Bullet").pack(pady=5)
+        ctk.CTkLabel(frame_main, text="⚔ Combat", font=("Arial", 18)).pack(pady=10)
+        make_feature_button("Aimbot")
+        make_feature_button("Magic Bullet")
+    
     elif tab_name == "Visual":
-        ctk.CTkLabel(frame_content, text="Visual Options").pack()
-        ctk.CTkButton(frame_content, text="ESP").pack(pady=5)
-        ctk.CTkButton(frame_content, text="ESP Storage").pack(pady=5)
+        ctk.CTkLabel(frame_main, text="👁 Visual", font=("Arial", 18)).pack(pady=10)
+        make_feature_button("ESP")
+        make_feature_button("ESP Storage")
+    
+    elif tab_name == "List":
+        ctk.CTkLabel(frame_main, text="📋 List", font=("Arial", 18)).pack(pady=10)
+        make_feature_button("Player List")
+        make_feature_button("Chest Finder")
+        make_feature_button("Mob Radar")
+    
+    elif tab_name == "Movement":
+        ctk.CTkLabel(frame_main, text="🏃 Movement", font=("Arial", 18)).pack(pady=10)
+        make_feature_button("Speed Hack")
+        make_feature_button("NoClip")
+        make_feature_button("Fly")
+    
     elif tab_name == "Others":
-        ctk.CTkLabel(frame_content, text="Other Features").pack()
-        ctk.CTkButton(frame_content, text="x2 Dupe Resource", command=fake_dupe).pack(pady=5)
-    else:
-        ctk.CTkLabel(frame_content, text=f"{tab_name} content coming soon...").pack()
+        ctk.CTkLabel(frame_main, text="⚙ Others", font=("Arial", 18)).pack(pady=10)
+        ctk.CTkButton(frame_main, text="x2 Dupe Resource", command=fake_dupe).pack(pady=5)
 
-# Симуляция визуального x2 дюпа
+# ==== Создание кнопки-функции ====
+def make_feature_button(name):
+    btn = ctk.CTkButton(frame_main, text=name,
+                        fg_color=button_color,
+                        hover_color=active_color,
+                        command=lambda: toggle_feature(name, btn))
+    btn.pack(pady=5)
+    feature_states[name] = False
+
+# ==== Фейковый дюп ====
 def fake_dupe():
     popup = ctk.CTkToplevel(app)
     popup.title("x2 Dupe Resource")
@@ -71,11 +104,6 @@ def fake_dupe():
     ctk.CTkLabel(popup, text="Ресурсы теперь визуально удвоены!\n(только на экране)").pack(pady=20)
     popup.wm_attributes("-topmost", True)
 
-# Обновление при переключении
-def on_tab_change(*args):
-    show_tab(selected_tab.get())
-
-selected_tab.trace_add("write", on_tab_change)
-select_tab("Combat")  # стартовая вкладка
-
+# ==== Запуск ====
+switch_tab("Combat")
 app.mainloop()
