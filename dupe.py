@@ -5,10 +5,25 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 app = ctk.CTk()
-app.geometry("320x540")
 app.title("NearKiller")
 app.wm_attributes("-topmost", True)
 app.wm_attributes("-alpha", 0.95)
+
+# Получаем размеры экрана
+root_tk = tk.Tk()
+screen_width = root_tk.winfo_screenwidth()
+screen_height = root_tk.winfo_screenheight()
+root_tk.destroy()
+
+# Размеры окна ~1/4 экрана, немного меньше (90%)
+win_width = int(screen_width / 4 * 0.9)
+win_height = int(screen_height / 4 * 0.9)
+
+# Разместим окно в правом нижнем углу
+pos_x = screen_width - win_width - 20  # отступ 20px от края экрана справа
+pos_y = screen_height - win_height - 50  # отступ 50px снизу
+
+app.geometry(f"{win_width}x{win_height}+{pos_x}+{pos_y}")
 
 button_color = "#8a2be2"
 active_color = "#a259ff"
@@ -17,9 +32,9 @@ enabled_color = "#d3a9ff"  # светлый фиолетовый
 selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}
 
-# Верхняя панель вкладок — кнопки маленькие по высоте, длинные по ширине
+# Верхняя панель вкладок
 frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
-frame_tabs.pack(pady=15)
+frame_tabs.pack(pady=10)
 
 def switch_tab(name):
     selected_tab.set(name)
@@ -30,11 +45,11 @@ tabs = {}
 tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
 
 for tab in tab_names:
-    btn = ctk.CTkButton(frame_tabs, text=tab, width=90, height=25,
+    btn = ctk.CTkButton(frame_tabs, text=tab, width=win_width // 6, height=25,
                         fg_color=button_color,
                         hover_color=active_color,
                         command=lambda t=tab: switch_tab(t))
-    btn.pack(side="left", padx=5)
+    btn.pack(side="left", padx=3)
     tabs[tab] = btn
 
 def update_tabs():
@@ -44,7 +59,7 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# Основной фрейм с кнопками функций занимает всё пространство под вкладками
+# Панель с кнопками функций под вкладками
 frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
 frame_buttons.pack(fill="both", expand=True, pady=10, padx=10)
 
@@ -93,7 +108,7 @@ def show_tab(tab_name):
                             fg_color=button_color,
                             hover_color=active_color,
                             height=25,
-                            width=300,
+                            width=win_width - 40,
                             anchor="w")
         btn.pack(pady=5, fill="x")
         btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
