@@ -91,7 +91,6 @@ def get_feature_display_text(name):
 
     sett = feature_settings.get(name, {})
 
-    # Настройки для разных функций
     if name in ["Aimbot", "Magic Bullet"]:
         fov = sett.get("fov", 90)
         dist = sett.get("distance", 100)
@@ -132,7 +131,6 @@ def toggle_feature(name, button):
     button.configure(fg_color=enabled_color if not current else button_color,
                      text=get_feature_display_text(name))
     save_settings()
-    update_buttons_text()
     update_overlay_visibility()
 
 def on_right_click(event, feature_name):
@@ -211,10 +209,12 @@ def open_settings(feature_name):
         popup.destroy()
 
     btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
-    btn_save.pack(pady=15)
+    btn_save.pack(pady=10)
 
 def update_buttons_text():
     clear_buttons()
+    current_tab = selected_tab.get()
+
     features_by_tab = {
         "Combat": ["Aimbot", "Magic Bullet"],
         "Visual": ["ESP", "ESP Storage"],
@@ -222,17 +222,16 @@ def update_buttons_text():
         "Movement": ["Speed Hack", "NoClip", "Fly"],
         "Others": ["x2 Dupe Resource"]
     }
-    for feature_name in features_by_tab.get(selected_tab.get(), []):
-        state = feature_states.get(feature_name, False)
-        btn = ctk.CTkButton(frame_buttons, text=get_feature_display_text(feature_name),
-                            fg_color=enabled_color if state else button_color,
-                            hover_color=active_color,
-                            command=lambda n=feature_name, b=None: toggle_feature(n, b),
-                            height=35)
-        btn.pack(fill="x", pady=3)
-        # Обновляем кнопку, чтобы она могла передать себя в toggle_feature
+
+    for feature_name in features_by_tab.get(current_tab, []):
+        btn = ctk.CTkButton(frame_buttons, text=get_feature_display_text(feature_name), fg_color=button_color,
+                            hover_color=active_color, command=lambda n=feature_name, b=None: toggle_feature(n, b))
+        btn.pack(fill="x", pady=5)
+        # Нужно чтобы toggle_feature получил кнопку, передадим через замыкание:
         btn.configure(command=lambda n=feature_name, b=btn: toggle_feature(n, b))
         btn.bind("<Button-3>", lambda e, n=feature_name: on_right_click(e, n))
+
+switch_tab(selected_tab.get())
 
 # --- Оверлей с красным кругом ---
 
@@ -240,28 +239,10 @@ circle_diameter = 100
 overlay = tk.Toplevel()
 overlay.overrideredirect(True)  # Без рамок
 overlay.attributes("-topmost", True)
-overlay.geometry(f"{circle_diameter}x{circle_diameter}+{(screen_width - circle_diameter)//2}+{(screen_height - circle_diameter)//2}")
-
-# Для Windows - делаем белый цвет прозрачным (фон окна)
+pos_x = (screen_width - circle_diameter) // 2
+pos_y = (screen_height - circle_diameter) // 2
+overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
 overlay.attributes("-transparentcolor", "white")
 overlay.config(bg="white")
 
-canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="white", highlightthickness=0)
-canvas.pack()
-
-# Красный круг
-canvas.create_oval(0, 0, circle_diameter, circle_diameter, fill="red", outline="red")
-
-overlay.withdraw()  # Скрываем по умолчанию
-
-def update_overlay_visibility():
-    if feature_states.get("Aimbot", False) or feature_states.get("Magic Bullet", False):
-        overlay.deiconify()
-    else:
-        overlay.withdraw()
-
-def show_tab(name):
-    update_buttons_text()
-
-switch_tab("Combat")
-app.mainloop()
+canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_d
