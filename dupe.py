@@ -11,12 +11,11 @@ app.wm_attributes("-alpha", 0.95)
 
 button_color = "#8a2be2"
 active_color = "#a259ff"
-enabled_color = "#b07fff"
+enabled_color = "#d3a9ff"  # светлый фиолетовый, заметнее
 
 selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}  # для отслеживания состояния
 
-# ==== Верхние вкладки ====
 frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
 frame_tabs.pack(pady=15)
 
@@ -43,7 +42,6 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# ==== Область контента ====
 frame_main = ctk.CTkFrame(app, corner_radius=15)
 frame_main.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -51,13 +49,14 @@ def clear_frame():
     for widget in frame_main.winfo_children():
         widget.destroy()
 
-# ==== Функция переключения ====
 def toggle_feature(name, button):
     current = feature_states.get(name, False)
     feature_states[name] = not current
-    button.configure(fg_color=enabled_color if not current else button_color)
+    if not current:
+        button.configure(fg_color=enabled_color, text=f"{name} [ON]")
+    else:
+        button.configure(fg_color=button_color, text=f"{name} [OFF]")
 
-# ==== Контент вкладок ====
 def show_tab(tab_name):
     clear_frame()
     
@@ -87,16 +86,14 @@ def show_tab(tab_name):
         ctk.CTkLabel(frame_main, text="⚙ Others", font=("Arial", 18)).pack(pady=10)
         ctk.CTkButton(frame_main, text="x2 Dupe Resource", command=fake_dupe).pack(pady=5)
 
-# ==== Создание кнопки-функции ====
 def make_feature_button(name):
-    btn = ctk.CTkButton(frame_main, text=name,
+    btn = ctk.CTkButton(frame_main, text=f"{name} [OFF]",
                         fg_color=button_color,
                         hover_color=active_color,
                         command=lambda: toggle_feature(name, btn))
     btn.pack(pady=5)
     feature_states[name] = False
 
-# ==== Фейковый дюп ====
 def fake_dupe():
     popup = ctk.CTkToplevel(app)
     popup.title("x2 Dupe Resource")
@@ -104,6 +101,5 @@ def fake_dupe():
     ctk.CTkLabel(popup, text="Ресурсы теперь визуально удвоены!\n(только на экране)").pack(pady=20)
     popup.wm_attributes("-topmost", True)
 
-# ==== Запуск ====
 switch_tab("Combat")
 app.mainloop()
