@@ -4,7 +4,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 app = ctk.CTk()
-app.geometry("420x540")
+app.geometry("500x540")
 app.title("NearKiller")
 app.wm_attributes("-topmost", True)
 app.wm_attributes("-alpha", 0.95)
@@ -14,7 +14,7 @@ active_color = "#a259ff"
 enabled_color = "#d3a9ff"  # светлый фиолетовый
 
 selected_tab = ctk.StringVar(value="Combat")
-feature_states = {}  # для отслеживания состояния
+feature_states = {}
 
 # Верхняя панель вкладок
 frame_tabs = ctk.CTkFrame(app, fg_color="transparent")
@@ -43,13 +43,21 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# Основной контент (текст/информация)
-frame_main = ctk.CTkFrame(app, corner_radius=15)
-frame_main.pack(fill="both", expand=True, padx=20, pady=(10, 60))  # Отступ снизу больше чтобы не было перекрытия
+# Основной фрейм с двумя колонками: слева контент, справа кнопки
+frame_content = ctk.CTkFrame(app)
+frame_content.pack(fill="both", expand=True, padx=20, pady=10)
 
-# Нижняя панель с кнопками функций (в ряд)
-frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
-frame_buttons.pack(side="bottom", fill="x", padx=20, pady=10)
+# Левая часть — контент
+frame_main = ctk.CTkFrame(frame_content, corner_radius=15)
+frame_main.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+# Правая часть — кнопки функций (вертикально, снизу)
+frame_buttons_outer = ctk.CTkFrame(frame_content, fg_color="transparent", width=140)
+frame_buttons_outer.pack(side="right", fill="y")
+
+# Чтобы кнопки были внизу справа, добавим вложенный frame_buttons с pack(side='bottom')
+frame_buttons = ctk.CTkFrame(frame_buttons_outer, fg_color="transparent")
+frame_buttons.pack(side="bottom", fill="x", pady=10)
 
 def clear_frame():
     for widget in frame_main.winfo_children():
@@ -79,20 +87,17 @@ def show_tab(tab_name):
     elif tab_name == "Movement":
         features = ["Speed Hack", "NoClip", "Fly"]
     elif tab_name == "Others":
-        # В Others кнопка не входит в общий список функций
-        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", command=fake_dupe)
-        btn.pack(side="left", padx=5)
+        btn = ctk.CTkButton(frame_buttons, text="x2 Dupe Resource", command=fake_dupe, width=120)
+        btn.pack(pady=5)
         return
 
-    # Создаём кнопки функций горизонтально
     for name in features:
         btn = ctk.CTkButton(frame_buttons, text=f"{name} [OFF]",
                             fg_color=button_color,
                             hover_color=active_color,
-                            width=110,
-                            command=lambda n=name, b=None: None)  # заглушка, ниже заменим
-        btn.pack(side="left", padx=5)
-        # Переписываем команду с правильной ссылкой на кнопку
+                            width=120,
+                            command=lambda n=name, b=None: None)  # заглушка
+        btn.pack(pady=5)
         btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
         feature_states[name] = False
 
