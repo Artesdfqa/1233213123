@@ -245,7 +245,6 @@ overlay.geometry(f"{circle_diameter}x{circle_diameter}+{pos_x}+{pos_y}")
 overlay.attributes("-transparentcolor", "white")
 overlay.config(bg="white")
 
-# Завершение canvas и рисование круга
 canvas = tk.Canvas(overlay, width=circle_diameter, height=circle_diameter, bg="white", highlightthickness=0)
 canvas.pack()
 canvas.create_oval(2, 2, circle_diameter - 2, circle_diameter - 2, outline="red", width=3)
