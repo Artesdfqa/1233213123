@@ -44,7 +44,7 @@ def update_tabs():
         else:
             btn.configure(fg_color=button_color)
 
-# Правая панель с кнопками функций — занимает всё окно под вкладками
+# Основной фрейм с кнопками функций занимает всё пространство под вкладками
 frame_buttons = ctk.CTkFrame(app, fg_color="transparent")
 frame_buttons.pack(fill="both", expand=True, pady=10, padx=10)
 
@@ -93,7 +93,7 @@ def show_tab(tab_name):
                             fg_color=button_color,
                             hover_color=active_color,
                             height=25,
-                            width=280,
+                            width=300,
                             anchor="w")
         btn.pack(pady=5, fill="x")
         btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
