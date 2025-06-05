@@ -207,8 +207,8 @@ def open_settings(feature_name):
         update_buttons_text()
         popup.destroy()
 
-    btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
-    btn_save.pack(pady=15)
+btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
+btn_save.pack(pady=15)
 
 def update_buttons_text():
     clear_buttons()
