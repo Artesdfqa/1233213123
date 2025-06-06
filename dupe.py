@@ -1,6 +1,5 @@
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import ttk
 import json
 import os
 
@@ -33,7 +32,7 @@ selected_tab = ctk.StringVar(value="Combat")
 feature_states = {}
 feature_settings = {}
 
-# Загрузка настроек
+# Загрузка настроек из файла
 def load_settings():
     global feature_settings
     if os.path.exists(SETTINGS_FILE):
@@ -45,7 +44,7 @@ def load_settings():
     else:
         feature_settings = {}
 
-# Сохранение настроек
+# Сохранение настроек в файл
 def save_settings():
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(feature_settings, f, indent=2)
@@ -58,7 +57,7 @@ frame_tabs.pack(pady=10)
 def switch_tab(name):
     selected_tab.set(name)
     update_tabs()
-    update_buttons_text()
+    show_tab(name)
 
 tabs = {}
 tab_names = ["Combat", "Visual", "List", "Movement", "Others"]
@@ -88,40 +87,12 @@ def clear_buttons():
 def get_feature_display_text(name):
     state = feature_states.get(name, False)
     on_off = "[ON]" if state else "[OFF]"
-
-    sett = feature_settings.get(name, {})
-
+    # Для Aimbot и Magic Bullet добавляем FOV и Distance
     if name in ["Aimbot", "Magic Bullet"]:
+        sett = feature_settings.get(name, {})
         fov = sett.get("fov", 90)
         dist = sett.get("distance", 100)
         return f"{name} {on_off} FOV: {fov} Dst: {dist}"
-    elif name == "ESP":
-        opacity = sett.get("opacity", 70)
-        return f"{name} {on_off} Opacity: {opacity}%"
-    elif name == "ESP Storage":
-        opacity = sett.get("opacity", 50)
-        return f"{name} {on_off} Opacity: {opacity}%"
-    elif name == "Player List":
-        count = sett.get("count", 10)
-        return f"{name} {on_off} Count: {count}"
-    elif name == "Chest Finder":
-        radius = sett.get("radius", 100)
-        return f"{name} {on_off} Radius: {radius}"
-    elif name == "Mob Radar":
-        radius = sett.get("radius", 100)
-        return f"{name} {on_off} Radius: {radius}"
-    elif name == "Speed Hack":
-        speed = sett.get("speed", 2)
-        return f"{name} {on_off} Speed: {speed}x"
-    elif name == "NoClip":
-        enabled = sett.get("enabled", False)
-        return f"{name} {on_off} Enabled: {'Yes' if enabled else 'No'}"
-    elif name == "Fly":
-        speed = sett.get("speed", 1)
-        return f"{name} {on_off} Speed: {speed}x"
-    elif name == "x2 Dupe Resource":
-        multiplier = sett.get("multiplier", 2)
-        return f"{name} {on_off} x{multiplier}"
     else:
         return f"{name} {on_off}"
 
@@ -140,101 +111,80 @@ def on_right_click(event, feature_name):
 def open_settings(feature_name):
     popup = ctk.CTkToplevel(app)
     popup.title(f"Настройки {feature_name}")
-    popup.geometry("320x250")
+    popup.geometry("300x200")
     popup.wm_attributes("-topmost", True)
 
     if feature_name not in feature_settings:
-        defaults = {
-            "Aimbot": {"fov": 90, "distance": 100},
-            "Magic Bullet": {"fov": 90, "distance": 100},
-            "ESP": {"opacity": 70},
-            "ESP Storage": {"opacity": 50},
-            "Player List": {"count": 10},
-            "Chest Finder": {"radius": 100},
-            "Mob Radar": {"radius": 100},
-            "Speed Hack": {"speed": 2},
-            "NoClip": {"enabled": False},
-            "Fly": {"speed": 1},
-            "x2 Dupe Resource": {"multiplier": 2},
-        }
-        feature_settings[feature_name] = defaults.get(feature_name, {})
+        feature_settings[feature_name] = {"fov": 90, "distance": 100}
 
     sett = feature_settings[feature_name]
 
-    def create_label_spinbox(parent, text, key, from_, to, increment=1, is_bool=False):
-        ctk.CTkLabel(parent, text=text).pack(pady=(10, 0))
-        if is_bool:
-            var = tk.BooleanVar(value=sett.get(key, False))
-            chk = ctk.CTkCheckBox(parent, text="", variable=var)
-            chk.pack()
-            return var
-        else:
-            var = tk.IntVar(value=sett.get(key, from_))
-            spin = ttk.Spinbox(parent, from_=from_, to=to, increment=increment, textvariable=var, width=10)
-            spin.pack()
-            return var
-
-    vars_dict = {}
-
-    if feature_name in ["Aimbot", "Magic Bullet"]:
-        vars_dict["fov"] = create_label_spinbox(popup, "FOV (угол):", "fov", 10, 180, 1)
-        vars_dict["distance"] = create_label_spinbox(popup, "Distance (дальность):", "distance", 10, 500, 5)
-    elif feature_name in ["ESP", "ESP Storage"]:
-        vars_dict["opacity"] = create_label_spinbox(popup, "Opacity (%):", "opacity", 0, 100, 5)
-    elif feature_name == "Player List":
-        vars_dict["count"] = create_label_spinbox(popup, "Count:", "count", 1, 100, 1)
-    elif feature_name in ["Chest Finder", "Mob Radar"]:
-        vars_dict["radius"] = create_label_spinbox(popup, "Radius:", "radius", 10, 500, 10)
-    elif feature_name == "Speed Hack":
-        vars_dict["speed"] = create_label_spinbox(popup, "Speed multiplier:", "speed", 1, 10, 1)
-    elif feature_name == "NoClip":
-        vars_dict["enabled"] = create_label_spinbox(popup, "Enabled:", "enabled", 0, 1, 1, is_bool=True)
-    elif feature_name == "Fly":
-        vars_dict["speed"] = create_label_spinbox(popup, "Speed multiplier:", "speed", 1, 10, 1)
-    elif feature_name == "x2 Dupe Resource":
-        vars_dict["multiplier"] = create_label_spinbox(popup, "Multiplier:", "multiplier", 1, 10, 1)
-
     def save_and_close():
-        for key, var in vars_dict.items():
-            if isinstance(var, tk.BooleanVar):
-                feature_settings[feature_name][key] = var.get()
-            else:
-                try:
-                    feature_settings[feature_name][key] = int(var.get())
-                except Exception:
-                    pass
+        try:
+            fov_val = int(entry_fov.get())
+            dist_val = int(entry_distance.get())
+            if fov_val < 0 or dist_val < 0:
+                raise ValueError
+        except ValueError:
+            error_label.configure(text="Введите положительные числа!")
+            return
+        sett["fov"] = fov_val
+        sett["distance"] = dist_val
         save_settings()
         update_buttons_text()
         popup.destroy()
+
+    ctk.CTkLabel(popup, text="FOV (угол):").pack(pady=(15, 0))
+    entry_fov = ctk.CTkEntry(popup)
+    entry_fov.pack(pady=5)
+    entry_fov.insert(0, str(sett.get("fov", 90)))
+
+    ctk.CTkLabel(popup, text="Distance (дальность):").pack(pady=(15, 0))
+    entry_distance = ctk.CTkEntry(popup)
+    entry_distance.pack(pady=5)
+    entry_distance.insert(0, str(sett.get("distance", 100)))
+
+    error_label = ctk.CTkLabel(popup, text="", text_color="red")
+    error_label.pack()
 
     btn_save = ctk.CTkButton(popup, text="Сохранить", command=save_and_close)
     btn_save.pack(pady=15)
 
 def update_buttons_text():
+    for widget in frame_buttons.winfo_children():
+        text = widget.cget("text")
+        # Получаем имя функции без статуса и параметров
+        name = text.split()[0]
+        if name in feature_states:
+            widget.configure(text=get_feature_display_text(name))
+
+def show_tab(tab_name):
     clear_buttons()
-    current_tab = selected_tab.get()
+    if tab_name == "Combat":
+        features = ["Aimbot", "Magic Bullet"]
+    elif tab_name == "Visual":
+        features = ["ESP", "ESP Storage"]
+    elif tab_name == "List":
+        features = ["Player List", "Chest Finder", "Mob Radar"]
+    elif tab_name == "Movement":
+        features = ["Speed Hack", "NoClip", "Fly"]
+    elif tab_name == "Others":
+        features = ["x2 Dupe Resource"]
+    else:
+        features = []
 
-    features_by_tab = {
-        "Combat": ["Aimbot", "Magic Bullet", "Speed Hack", "NoClip", "Fly"],
-        "Visual": ["ESP", "ESP Storage", "Chest Finder", "Mob Radar"],
-        "List": ["Player List"],
-        "Movement": [],
-        "Others": ["x2 Dupe Resource"],
-    }
-
-    for feature in features_by_tab.get(current_tab, []):
-        state = feature_states.get(feature, False)
-        btn = ctk.CTkButton(frame_buttons,
-                            text=get_feature_display_text(feature),
-                            fg_color=enabled_color if state else button_color,
+    for name in features:
+        btn = ctk.CTkButton(frame_buttons, text=get_feature_display_text(name),
+                            fg_color=button_color,
                             hover_color=active_color,
-                            height=30,
+                            height=25,
+                            width=win_width - 40,
                             anchor="w")
-        btn.configure(command=lambda f=feature, b=btn: toggle_feature(f, b))
-        btn.pack(fill="x", pady=3)
-        btn.bind("<Button-3>", lambda e, f=feature: on_right_click(e, f))
+        btn.pack(pady=5, fill="x")
+        btn.configure(command=lambda n=name, b=btn: toggle_feature(n, b))
+        btn.bind("<Button-3>", lambda e, n=name: on_right_click(e, n))
+        if name not in feature_states:
+            feature_states[name] = False
 
-update_tabs()
-update_buttons_text()
-
+switch_tab("Combat")
 app.mainloop()
